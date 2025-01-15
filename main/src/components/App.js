@@ -1,53 +1,37 @@
-import React, { useState } from 'react';
-
-function RobotForm({ onAddRobot }) {
-    const [formData, setFormData] = useState({ name: '', type: '', mass: '' });
-
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
-    };
-
-    const handleAdd = () => {
-        const mass = parseFloat(formData.mass);
-        onAddRobot({
-            name: formData.name || '',
-            type: formData.type || '',
-            mass: isNaN(mass) || mass < 500 ? '' : mass,
-        });
-        setFormData({ name: '', type: '', mass: '' });
-    };
-
-    return (
-        <div>
-            <input id="name" value={formData.name} onChange={handleChange} placeholder="Name" />
-            <input id="type" value={formData.type} onChange={handleChange} placeholder="Type" />
-            <input id="mass" value={formData.mass} onChange={handleChange} placeholder="Mass" type="number" />
-            <button onClick={handleAdd} value="add">Add</button>
-        </div>
-    );
-}
+import React, { useState, useEffect } from 'react';
+import RobotForm from './RobotForm';
+import store from '../stores/RobotStore';
 
 function App() {
-    const [robots, setRobots] = useState([]);
+  const [robots, setRobots] = useState([]);
 
-    const addRobot = (robot) => {
-        setRobots((prev) => [...prev, robot]);
-    };
+  useEffect(() => {
+    setRobots(store.getRobots());
+    store.emitter.addEventListener('UPDATE', () => {
+      setRobots([...store.getRobots()]);
+    });
+  }, []);
 
-    return (
-        <div>
-            <h1>Robot Manager</h1>
-            <RobotForm onAddRobot={addRobot} />
-            <ul>
-                {robots.map((robot, index) => (
-                    <li key={index}>
-                        Name: {robot.name}, Type: {robot.type}, Mass: {robot.mass}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+  const addRobot = (robot) => {
+    store.addRobot(robot);
+  };
+
+  return (
+    <div>
+      <h1>A list of robots</h1>
+      <RobotForm onAddRobot={addRobot} />
+      <ul>
+  {robots.map((robot, index) => (
+    <li key={index} className="robot">
+      Hello, my name is {robot.name}. I am a {robot.type} and weigh {robot.mass || ''}
+{robot.mass ? '' : ''}
+
+    </li>
+  ))}
+</ul>
+
+    </div>
+  );
 }
 
 export default App;
